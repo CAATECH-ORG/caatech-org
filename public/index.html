@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Particle Network</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: url('https://storage.googleapis.com/amciimages/blue_sky_desktop.png') no-repeat center center fixed;
+      background-size: cover;
+    }
+    canvas {
+      display: block;
+    }
+    .center-text {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Orbitron', Arial, sans-serif;
+      font-size: 104px;
+      color: white;
+      letter-spacing: 10px;
+      text-transform: uppercase;
+      pointer-events: none;
+      user-select: none;
+      text-align: center;
+      text-shadow: 0 0 40px #00ffe0, 0 0 20px #00c3ff;
+      animation: glow 2s infinite alternate;
+      z-index: 2;
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #00ffe0, 0 0 5px #00c3ff;}
+      to { text-shadow: 0 0 40px #00ffe0, 0 0 20px #00c3ff;}
+    }
+    .subtitle {
+      margin-top: 10px;
+      font-size: 28px;
+      letter-spacing: normal;
+      font-weight: 300;
+      color: #ffffffcc;
+      text-transform: none;
+      text-shadow: 0 0 10px #00ffe0;
+    }
+    .cta-button {
+      margin-top: 30px;
+      font-size: 18px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(90deg,#00ffe0,#00c3ff);
+      color: #222;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 20px #00ffe0;
+      transition: background 0.3s, color 0.3s, box-shadow 0.3s, transform 0.2s;
+      pointer-events: auto;
+    }
+    .cta-button:hover {
+      background: #fff;
+      color: #00c3ff;
+      box-shadow: 0 0 40px #00ffe0;
+      transform: scale(1.07);
+    }
+    @media screen and (max-width: 768px) {
+      body, html {
+        background: url('https://storage.googleapis.com/amciimages/blue_sky_mobile.png') no-repeat center center fixed;
+        background-size: cover;
+      }
+      .center-text {font-size: 48px;}
+      .subtitle {font-size: 18px;}
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <canvas id="particles-canvas"></canvas>
+  <div class="center-text">
+    <span id="hacker-text">CAATECH</span>
+    <div class="subtitle">Communauté Africaine des Amoureux de Technologies</div>
+    <button class="cta-button">Rejoins-nous bientôt</button>
+  </div>
+  <script>
+    // PARTICLES (neurones) EXACTEMENT COMME TON CODE INITIAL
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const numParticles = 100;
+    const maxDistance = 100;
+    let mouse = { x: null, y: null, radius: 120 };
+
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: (Math.random() - 0.5) * 1.5,
+        radius: Math.random() * 2 + 1
+      });
+    }
+
+    function updateMousePosition(x, y) {
+      mouse.x = x;
+      mouse.y = y;
+    }
+
+    canvas.addEventListener('mousemove', (event) => {
+      updateMousePosition(event.clientX, event.clientY);
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      mouse.x = null;
+      mouse.y = null;
+    });
+
+    canvas.addEventListener('touchstart', (event) => {
+      if (event.touches.length > 0) {
+        updateMousePosition(event.touches[0].clientX, event.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', (event) => {
+      if (event.touches.length > 0) {
+        updateMousePosition(event.touches[0].clientX, event.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', () => {
+      mouse.x = null;
+      mouse.y = null;
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw particles
+      for (let i = 0; i < numParticles; i++) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fill();
+      }
+
+      // Draw lines between close particles
+      for (let i = 0; i < numParticles; i++) {
+        for (let j = i + 1; j < numParticles; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < maxDistance) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${1 - distance / maxDistance})`;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw lines from mouse/touch to nearby particles
+      if (mouse.x !== null && mouse.y !== null) {
+        for (let i = 0; i < numParticles; i++) {
+          const dx = particles[i].x - mouse.x;
+          const dy = particles[i].y - mouse.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < mouse.radius) {
+            ctx.beginPath();
+            ctx.moveTo(mouse.x, mouse.y);
+            ctx.lineTo(particles[i].x, particles[i].y);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${1 - distance / mouse.radius})`;
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+
+    // Update canvas size on window resize
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // ANIMATION HACKER SUR LE TEXTE PRINCIPAL
+    const hackerText = document.getElementById('hacker-text');
+    const originalText = hackerText.innerText;
+    let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let interval = null;
+
+    function hackerEffect() {
+      let iteration = 0;
+      clearInterval(interval);
+      interval = setInterval(() => {
+        hackerText.innerText = originalText.split("")
+          .map((letter, i) => {
+            if (i < iteration) return originalText[i];
+            return letters[Math.floor(Math.random() * letters.length)];
+          })
+          .join("");
+        if (iteration >= originalText.length) clearInterval(interval);
+        iteration += 1/2;
+      }, 30);
+    }
+    hackerText.addEventListener('mouseenter', hackerEffect);
+    setTimeout(hackerEffect, 800);
+  </script>
+</body>
+</html>
