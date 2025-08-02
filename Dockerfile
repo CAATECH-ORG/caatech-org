@@ -1,7 +1,7 @@
 FROM nginx:alpine
 
 # ✅ Copy static files
-COPY ./site /usr/share/nginx/html
+COPY ./public /usr/share/nginx/html
 
 # ✅ Overwrite Nginx default config to listen on $PORT
 RUN sed -i 's/listen       80;/listen       8080;/' /etc/nginx/conf.d/default.conf
